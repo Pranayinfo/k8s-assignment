@@ -1,9 +1,12 @@
 from flask import Flask, render_template,request,jsonify
 import requests
 import json
-from decouple import config
+from dotenv import load_dotenv
+import os
 
-URL =  config('BACKEND_URL')
+load_dotenv()
+
+URL = os.environ['BACKEND_URL']
 
 app = Flask(__name__)
 

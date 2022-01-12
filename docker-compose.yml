@@ -12,6 +12,9 @@ services:
         volumes:
             - frontend_data:/code
 
+        environment:
+            - BACKEND_URL=http://backend:9000
+
         depends_on:
             - backend
 
@@ -29,6 +32,13 @@ services:
         image: ps-backend-microsevice
 
         hostname: backend-service
+
+        environment:
+            - "POSTGRES_USER=talha"
+            - "POSTGRES_DB=altair"
+            - "POSTGRES_PASSWORD=secret"
+            - "POSTGRES_HOST=postgres-service"
+            - "POSTGRES_PORT=5432"
 
         ports:
             - "1000:9000"
@@ -56,8 +66,8 @@ services:
         hostname: postgres-service
 
         environment:
-            - "POSTGRES_USER=username"
-            - "POSTGRES_DB=database"
+            - "POSTGRES_USER=talha"
+            - "POSTGRES_DB=altair"
             - "POSTGRES_PASSWORD=secret"
             - "ALLOW_EMPTY_PASSWORD=yes"
 

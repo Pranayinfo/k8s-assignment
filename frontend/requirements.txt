@@ -1,4 +1,3 @@
 flask
 requests
-python-decouple
 python-dotenv

@@ -1,8 +1,8 @@
-FROM python:3.9.4-slim-buster
+FROM python:3.9.7-slim-buster
 
-ADD . .
+ADD . ./app
 
-WORKDIR /
+WORKDIR /app
 
 RUN pip install -r requirements.txt
 
