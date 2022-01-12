@@ -5,7 +5,7 @@ Consisting of 4 services, with env variables for each service as defined in the 
 
 ## Task
 
-Convert the Given Docker Compose file to a Kubernetes Deployment on GKE.
+Convert the Given Docker Compose file to a Kubernetes Deployment on GKE Standard.
 
 Ensure a persistent storage solution for postgres data, every other service can be stateless.
 
