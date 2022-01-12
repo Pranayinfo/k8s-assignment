@@ -1,0 +1,102 @@
+version: "3"
+
+services:
+    frontend:
+        container_name: frontend
+
+        build: ./frontend/
+
+        ports:
+            - "3000:8000"
+
+        volumes:
+            - frontend_data:/code
+
+        depends_on:
+            - backend
+
+        links:
+            - backend
+
+        networks:
+            - altair
+
+    backend:
+        container_name: backend
+
+        build: ./backend/
+
+        image: ps-backend-microsevice
+
+        hostname: backend-service
+
+        ports:
+            - "1000:9000"
+
+        volumes:
+            - backend_data:/code
+
+        depends_on:
+            - postgres
+
+        links:
+            - postgres
+
+        networks:
+            - altair
+
+    postgres:
+        container_name: postgres
+
+        image: postgres:latest
+
+        ports:
+            - "5433:5432"
+
+        hostname: postgres-service
+
+        environment:
+            - "POSTGRES_USER=username"
+            - "POSTGRES_DB=database"
+            - "POSTGRES_PASSWORD=secret"
+            - "ALLOW_EMPTY_PASSWORD=yes"
+
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+
+        networks:
+            - altair
+
+    pgadmin:
+        container_name: admin
+
+        image: dpage/pgadmin4
+
+        links:
+            - postgres
+
+        depends_on:
+            - postgres
+
+        environment:
+            PGADMIN_DEFAULT_EMAIL: admin@admin.com
+            PGADMIN_DEFAULT_PASSWORD: pwdpwd
+
+        volumes:
+            - pgadmin_data:/root/.pgadmin
+
+        ports:
+            - "5051:80"
+
+        networks:
+            - altair
+
+networks:
+    altair:
+        driver: "bridge"
+
+volumes:
+    postgres_data:
+    pgadmin_data:
+    backend_data:
+    frontend_data:
