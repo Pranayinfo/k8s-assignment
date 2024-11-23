@@ -1,0 +1,86 @@
+steps:
+  # Step to retrieve secrets for environment variables
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: 'bash'
+    args: [ '-c', "gcloud secrets versions access latest --secret=$BRANCH_NAME-env-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env" ]
+
+  # Build and push frontend image
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: frontend
+    args: [
+      'build', '--no-cache',
+      '-t', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
+      '--build-arg', 'BACKEND_URL=http://backend-service:9000',
+      '.'
+    ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME']
+
+  # Build and push backend image
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: backend
+    args: [
+      'build', '--no-cache',
+      '-t', 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME',
+      '--build-arg', 'POSTGRES_USER=talha',
+      '--build-arg', 'POSTGRES_PASSWORD=secret',
+      '--build-arg', 'POSTGRES_DB=altair',
+      '--build-arg', 'POSTGRES_HOST=postgres-service',
+      '--build-arg', 'POSTGRES_PORT=5432',
+      '.'
+    ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME']
+
+  # Deploy frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'frontend-$BRANCH_NAME',
+      '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
+      '--region', '${_REGION}', '--platform', 'managed',
+      '--allow-unauthenticated'
+    ]
+
+  # Deploy backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'backend-$BRANCH_NAME',
+      '--image', 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME',
+      '--region', '${_REGION}', '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'POSTGRES_USER=talha,POSTGRES_PASSWORD=secret,POSTGRES_DB=altair,POSTGRES_HOST=postgres-service,POSTGRES_PORT=5432'
+    ]
+
+  # Deploy PostgreSQL to Cloud Run (Optional; can be skipped if deployed separately)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'postgres-$BRANCH_NAME',
+      '--image', 'postgres:latest',
+      '--region', '${_REGION}', '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'POSTGRES_USER=talha,POSTGRES_PASSWORD=secret,POSTGRES_DB=altair'
+    ]
+
+  # Deploy pgAdmin to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args: [
+      'run', 'deploy', 'pgadmin-$BRANCH_NAME',
+      '--image', 'dpage/pgadmin4',
+      '--region', '${_REGION}', '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--set-env-vars', 'PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
+    ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: us-central1
+  _ENV: development
+  _APP_NAME: d3v-app
+  _SEVERITY: CRITICAL
+timeout: "1200s"
