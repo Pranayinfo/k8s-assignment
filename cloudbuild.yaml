@@ -40,7 +40,7 @@ steps:
       '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
       '--region', '${_REGION}', '--platform', 'managed',
       '--port', '3000:8000',
-      '--allow-unauthenticated'
+      '--allow-unauthenticated',
       '--timeout', '300s' 
     ]
 
