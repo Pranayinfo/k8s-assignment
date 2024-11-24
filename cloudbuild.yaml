@@ -35,13 +35,16 @@ steps:
   # Deploy frontend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
-    args: [
-       'run', 'deploy', 'frontend-$BRANCH_NAME',
-       '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
-       '--region', '${_REGION}', '--platform', 'managed',
-       '--allow-unauthenticated',
-       '--timeout', '600s'
-       ]
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_APP_NAME}-$BRANCH_NAME'
+      - '--image=gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=3000' # Set the port to 3000
+      - '--memory=2Gi' # Allocate 512Mi memory
 
   # Deploy backend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
