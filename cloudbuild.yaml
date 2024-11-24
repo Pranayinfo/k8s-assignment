@@ -2,7 +2,7 @@ steps:
   # Step to retrieve secrets for environment variables
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: 'bash'
-    args: [ '-c', "gcloud secrets versions access latest --secret=$BRANCH_NAME-env-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env" ]
+    args: [ '-c', "gcloud secrets versions access latest --secret=$BRANCH_NAME-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env" ]
 
   # Build and push frontend image
   - name: 'gcr.io/cloud-builders/docker'
@@ -39,7 +39,7 @@ steps:
       'run', 'deploy', 'frontend-$BRANCH_NAME',
       '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
       '--region', '${_REGION}', '--platform', 'managed',
-      '--port', '8000',
+      '--port', '3000:8000',
       '--allow-unauthenticated'
     ]
 
