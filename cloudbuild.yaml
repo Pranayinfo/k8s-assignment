@@ -39,6 +39,7 @@ steps:
       'run', 'deploy', 'frontend-$BRANCH_NAME',
       '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
       '--region', '${_REGION}', '--platform', 'managed',
+      '--port', '8000'
       '--allow-unauthenticated'
     ]
 
