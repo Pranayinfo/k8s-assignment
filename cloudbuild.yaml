@@ -39,8 +39,7 @@ steps:
       'run', 'deploy', 'frontend-$BRANCH_NAME',
       '--image', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
       '--region', '${_REGION}', '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--set-env-vars', 'PORT=3000'
+      '--allow-unauthenticated'
     ]
 
 
