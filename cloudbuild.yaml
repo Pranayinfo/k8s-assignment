@@ -51,8 +51,7 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--port=8000'  # Set the port to 3000
-      - '--memory=2Gi' # Allocate 2Gi memory
+     # - '--port=8000'  
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
