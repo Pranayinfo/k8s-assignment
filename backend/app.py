@@ -1,9 +1,11 @@
-from flask import *
+from flask import Flask, jsonify, request
 import time
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 import os
 
+# Load environment variables
 load_dotenv()
 
 db_name = os.environ.get('POSTGRES_DB')
@@ -12,68 +14,53 @@ db_pass = os.environ.get('POSTGRES_PASSWORD')
 db_host = os.environ.get('POSTGRES_HOST')
 db_port = os.environ.get('POSTGRES_PORT')
 
-db_string = 'postgresql://{}:{}@{}:{}/{}'.format(
-    db_user, db_pass, db_host, db_port, db_name)
+db_string = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
 db = create_engine(db_string)
 
 app = Flask(__name__)
 
-
 @app.route('/ping')
 def ping_pong():
-
     return jsonify({"ping": "Altair"})
 
-
-@app.route('/update', methods=['POST', 'GET'])
+@app.route('/update', methods=['POST'])
 def start():
+    name = request.values.get("name")
+    info = request.values.get("info")
+    comments = request.values.get("comments")
 
-    if request.method == 'POST':
-        name = request.values.get("name")
-        info = request.values.get("info")
-        comments = request.values.get("comments")
+    if not (name and info and comments):
+        return jsonify({"Message": "Invalid data"}), 400
 
-        name = "{" + name + "}"
-        info = "{" + info + "}"
-        comments = "{" + comments + "}"
+    query = text("INSERT INTO users (name, info, comments) VALUES (:name, :info, :comments)")
+    with Session(db) as session:
+        session.execute(query, {"name": name, "info": info, "comments": comments})
+        session.commit()
 
-        query = f"insert into users values ('{str(name)}','{str(info)}','{str(comments)}')"
-        db.execute(query)
+    return jsonify("Entry Added")
 
-        return jsonify("Entry Added")
-
-    return jsonify({"Message": "Please send data"})
-
-
-@app.route('/view', methods=['POST', 'GET'])
+@app.route('/view', methods=['GET'])
 def view():
+    query = text("SELECT * FROM users")
+    with Session(db) as session:
+        results = session.execute(query).fetchall()
 
-    query = f"select * from users"
-
-    data = db.execute(query)
-
-    results = data.fetchall()
-
-    result_dict = {
-        "data": []
-    }
-
-    for result in results:
-        result_dict['data'].append(list(result))
-
-    print(result_dict, results)
-
+    result_dict = {"data": [dict(row) for row in results]}
     return jsonify(result_dict)
 
-
 def db_init():
-
-    query = f"create table IF NOT EXISTS users ( name varchar(1000),info varchar(1000),comments varchar(1000) )"
-
-    db.execute(query)
-
+    query = text("""
+        CREATE TABLE IF NOT EXISTS users (
+            name VARCHAR(1000),
+            info VARCHAR(1000),
+            comments VARCHAR(1000)
+        )
+    """)
+    with Session(db) as session:
+        session.execute(query)
+        session.commit()
 
 if __name__ == '__main__':
-    time.sleep(15)
+    time.sleep(15)  # Wait for the database to be ready
     db_init()
     app.run(host='0.0.0.0', port=9000, debug=True)
