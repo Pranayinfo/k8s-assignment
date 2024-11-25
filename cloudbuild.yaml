@@ -51,7 +51,7 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-     # - '--port=8000' 
+      - '--port=8080' 
       - '--timeout=300s'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
