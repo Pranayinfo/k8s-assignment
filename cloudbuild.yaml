@@ -1,35 +1,46 @@
 steps:
-  # Step to retrieve secrets for environment variables for frontend and backend
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: 'bash'
-    args: [
-      '-c',
-      "gcloud secrets versions access latest --secret=$BRANCH_NAME-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env"
-  # Build and push frontend image
+    args:
+      - '-c'
+      - "gcloud secrets versions access latest --secret=$BRANCH_NAME-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env"
+  
   - name: 'gcr.io/cloud-builders/docker'
     dir: frontend
-    args: [
-      'build', '--no-cache',
-      '-t', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME',
-      '--build-arg', 'BACKEND_URL=http://backend-service:9000', 
-      '--file', 'Dockerfile', '.'
-    ]
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME']
+    args:
+      - 'build'
+      - '--no-cache'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME'
+      - '--build-arg'
+      - 'BACKEND_URL=http://backend-service:9000'
+      - '--file'
+      - 'Dockerfile'
+      - '.'
 
-  # Build and push backend image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME'
+
   - name: 'gcr.io/cloud-builders/docker'
     dir: backend
-    args: [
-      'build', '--no-cache',
-      '-t', 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME',
-      '--build-arg', 'ENV=${_ENV}', 
-      '--file', 'Dockerfile', '.'
-    ]
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME']
+    args:
+      - 'build'
+      - '--no-cache'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME'
+      - '--build-arg'
+      - 'ENV=${_ENV}'
+      - '--file'
+      - 'Dockerfile'
+      - '.'
 
-  # Deploy frontend to Cloud Run
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME'
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -42,9 +53,7 @@ steps:
       - '--allow-unauthenticated'
       - '--port=3000'  # Set the port to 3000
       - '--memory=2Gi' # Allocate 2Gi memory
-    
 
-  # Deploy backend to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -55,9 +64,7 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-    
 
-  # Deploy pgAdmin to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -68,7 +75,6 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-    
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -78,4 +84,5 @@ substitutions:
   _ENV: development
   _APP_NAME: d3v-app
   _SEVERITY: CRITICAL
+
 timeout: "1200s"
