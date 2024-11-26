@@ -79,7 +79,9 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
+      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
+      
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -89,5 +91,6 @@ substitutions:
   _ENV: development
   _APP_NAME: d3v-app
   _SEVERITY: CRITICAL
+  _CLOUDSQL_CONNECTION_NAME: feisty-return-438307-f5:us-central1:d3v-db
 
 timeout: "1200s"
