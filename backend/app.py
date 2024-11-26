@@ -63,4 +63,4 @@ def db_init():
 if __name__ == '__main__':
     time.sleep(15)  # Wait for the database to be ready
     db_init()
-    app.run(host='0.0.0.0', port=9000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
