@@ -4,11 +4,11 @@ ADD . .
 
 WORKDIR /
 
+RUN pip install -r requirements.txt
+
 ENV ASPNETCORE_URLS=http://+:9000
 
 ENV PORT 9000
-
-RUN pip install -r requirements.txt
 
 EXPOSE 9000
 
