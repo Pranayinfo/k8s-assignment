@@ -4,9 +4,13 @@ ADD . ./app
 
 WORKDIR /app
 
+ENV ASPNETCORE_URLS=http://+:8000
+
+ENV PORT 8000
+
 RUN pip install -r requirements.txt
 
-EXPOSE 8080
+EXPOSE 8000
 
 ENTRYPOINT ["python3"]
 
