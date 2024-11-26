@@ -53,7 +53,7 @@ steps:
       - '--allow-unauthenticated'
       - '--port=8000' 
       - '--timeout=300s'
-      - '--set-env-vars=BACKEND_URL=http://backend-service:8080'
+      - '--set-env-vars=BACKEND_URL=http://backend-service:9000'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
@@ -66,7 +66,8 @@ steps:
       - '--platform=managed'
       - '--allow-unauthenticated'
       - '--port=9000' 
-      - '--timeout=300s'
+      - '--timeout=500s'
+      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -79,7 +80,6 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
       
 
