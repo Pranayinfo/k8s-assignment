@@ -66,7 +66,7 @@ steps:
       - '--platform=managed'
       - '--allow-unauthenticated'
       - '--port=9000' 
-      - '--timeout=500s'
+      - '--timeout=300s'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
       #- '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_PORT=5432,CLOUD_SQL_CONNECTION_NAME=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
