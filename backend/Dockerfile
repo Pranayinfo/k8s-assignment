@@ -6,7 +6,7 @@ WORKDIR /
 
 RUN pip install -r requirements.txt
 
-EXPOSE 80080
+EXPOSE 8080
 
 ENTRYPOINT ["python3"]
 
