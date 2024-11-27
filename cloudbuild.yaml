@@ -68,7 +68,7 @@ steps:
       - '--port=9000' 
       - '--timeout=500s'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
-      - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
+      - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_PORT=5432'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
