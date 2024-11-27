@@ -1,39 +1,21 @@
 from flask import Flask, jsonify, request
 import time
-import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
-from dotenv import load_dotenv
-import sqlalchemy
+import os
 
 # Load environment variables
 load_dotenv()
 
-db_config = {
-    "pool_size": 5,
-    "max_overflow": 2,
-    "pool_timeout": 30,  # seconds
-    "pool_recycle": 1800,  # seconds
-}
+db_name = os.environ.get('POSTGRES_DB')
+db_user = os.environ.get('POSTGRES_USER')
+db_pass = os.environ.get('POSTGRES_PASSWORD')
+db_host = os.environ.get('POSTGRES_HOST')
+db_port = os.environ.get('POSTGRES_PORT')
 
-def init_unix_connection_engine():
-    pool = sqlalchemy.create_engine(
-        sqlalchemy.engine.url.URL.create(
-            drivername="postgresql+pg8000",
-            username=os.environ.get("POSTGRES_USER"),
-            password=os.environ.get("POSTGRES_PASSWORD"),
-            database=os.environ.get("POSTGRES_DB"),
-            query={
-                "unix_sock": f"/cloudsql/{os.environ.get('CLOUD_SQL_CONNECTION_NAME')}/.s.PGSQL.5432"
-            },
-        ),
-        **db_config
-    )
-    pool.dialect.description_encoding = None
-    return pool
-
-# Initialize database connection
-db = init_unix_connection_engine()
+db_string = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
+db = create_engine(db_string)
 
 app = Flask(__name__)
 
@@ -81,5 +63,4 @@ def db_init():
 if __name__ == '__main__':
     time.sleep(15)  # Wait for the database to be ready
     db_init()
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host='0.0.0.0', port=9000, debug=True)
