@@ -81,5 +81,5 @@ def db_init():
 if __name__ == '__main__':
     time.sleep(15)  # Wait for the database to be ready
     db_init()
-    port = int(os.environ.get("PORT", 9000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=True)
