@@ -1,21 +1,21 @@
 from flask import Flask, jsonify, request
-import time
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 import os
+import time
 
 # Load environment variables
 load_dotenv()
 
+# Database credentials from environment variables
 db_name = os.environ.get('POSTGRES_DB')
 db_user = os.environ.get('POSTGRES_USER')
 db_pass = os.environ.get('POSTGRES_PASSWORD')
-db_host = os.environ.get('POSTGRES_HOST')
-db_port = os.environ.get('POSTGRES_PORT')
-port = os.environ.get('PORT', 9000)  # Get the port from environment variable or default to 9000
+cloud_sql_connection_name = os.environ.get('CLOUD_SQL_CONNECTION_NAME')
 
-db_string = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
+# Use Unix socket for Cloud SQL connection
+db_string = f"postgresql://{db_user}:{db_pass}@/cloudsql/{cloud_sql_connection_name}/{db_name}"
 db = create_engine(db_string)
 
 app = Flask(__name__)
@@ -61,23 +61,7 @@ def db_init():
         session.execute(query)
         session.commit()
 
-def wait_for_db():
-    retries = 10
-    while retries > 0:
-        try:
-            # Attempt to connect to the database
-            with Session(db) as session:
-                session.execute("SELECT 1")
-            print("Database is ready!")
-            break
-        except Exception as e:
-            print(f"Database not ready, retrying: {e}")
-            time.sleep(5)
-            retries -= 1
-            if retries == 0:
-                raise Exception("Database is not ready after multiple attempts.")
-
 if __name__ == '__main__':
-    wait_for_db()  # Wait until the DB is ready
-    db_init()  # Initialize the database schema
-    app.run(host='0.0.0.0', port=int(port), debug=True)  # Bind to the correct port
+    time.sleep(15)  # Wait for the database to be ready
+    db_init()
+    app.run(host='0.0.0.0', port=9000, debug=True)
