@@ -81,6 +81,8 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
+      - '--port=8080' 
+      - '--timeout=300s'
       - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
       
 
