@@ -6,6 +6,7 @@ steps:
       - "gcloud secrets versions access latest --secret=$BRANCH_NAME-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env"
   
 steps:
+  # Authenticate Docker with Artifact Registry
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -13,25 +14,40 @@ steps:
       - 'configure-docker'
       - 'us-central1-docker.pkg.dev'
 
+  # Create Artifact Registry for frontend if it doesn't exist
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'artifacts'
       - 'repositories'
       - 'create'
-      - 'my-artifact-registry'
+      - 'frontend'
       - '--repository-format=docker'
       - '--location=us-central1'
-      - '--description="Artifact Registry for storing Docker images"'
+      - '--description="Artifact Registry for frontend images"'
     timeout: "120s"
 
+  # Create Artifact Registry for backend if it doesn't exist
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'artifacts'
+      - 'repositories'
+      - 'create'
+      - 'backend'
+      - '--repository-format=docker'
+      - '--location=us-central1'
+      - '--description="Artifact Registry for backend images"'
+    timeout: "120s"
+
+  # Build and push frontend Docker image
   - name: 'gcr.io/cloud-builders/docker'
     dir: frontend
     args:
       - 'build'
       - '--no-cache'
       - '-t'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/frontend/frontend:$BRANCH_NAME'
       - '--build-arg'
       - 'BACKEND_URL=http://backend-service:9000'
       - '--file'
@@ -41,15 +57,16 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/frontend/frontend:$BRANCH_NAME'
 
+  # Build and push backend Docker image
   - name: 'gcr.io/cloud-builders/docker'
     dir: backend
     args:
       - 'build'
       - '--no-cache'
       - '-t'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/backend/backend:$BRANCH_NAME'
       - '--build-arg'
       - 'ENV=${_ENV}'
       - '--file'
@@ -59,15 +76,16 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/backend/backend:$BRANCH_NAME'
 
+  # Deploy frontend using Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
       - '${_APP_NAME}-$BRANCH_NAME-frontend'
-      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/frontend/frontend:$BRANCH_NAME'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -75,13 +93,14 @@ steps:
       - '--timeout=300s'
       - '--set-env-vars=BACKEND_URL=http://backend-service:9000'
 
+  # Deploy backend using Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
       - 'run'
       - 'deploy'
       - '${_APP_NAME}-$BRANCH_NAME-backend'
-      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/backend/backend:$BRANCH_NAME'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
@@ -89,21 +108,6 @@ steps:
       - '--timeout=300s'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
-
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'pgadmin-$BRANCH_NAME'
-      - '--image=dpage/pgadmin4'
-      - '--region=${_REGION}'
-      - '--platform=managed'
-      - '--allow-unauthenticated'
-      - '--port=80'
-      - '--timeout=300s'
-      - '--memory=1Gi'
-      - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
 
 options:
   logging: CLOUD_LOGGING_ONLY
