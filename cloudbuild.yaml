@@ -5,13 +5,33 @@ steps:
       - '-c'
       - "gcloud secrets versions access latest --secret=$BRANCH_NAME-${_APP_NAME} --format='get(payload.data)' | tr '_-' '/+' | base64 -d > .env"
   
+steps:
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'auth'
+      - 'configure-docker'
+      - 'us-central1-docker.pkg.dev'
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'artifacts'
+      - 'repositories'
+      - 'create'
+      - 'my-artifact-registry'
+      - '--repository-format=docker'
+      - '--location=us-central1'
+      - '--description="Artifact Registry for storing Docker images"'
+    timeout: "120s"
+
   - name: 'gcr.io/cloud-builders/docker'
     dir: frontend
     args:
       - 'build'
       - '--no-cache'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
       - '--build-arg'
       - 'BACKEND_URL=http://backend-service:9000'
       - '--file'
@@ -21,7 +41,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
 
   - name: 'gcr.io/cloud-builders/docker'
     dir: backend
@@ -29,7 +49,7 @@ steps:
       - 'build'
       - '--no-cache'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
       - '--build-arg'
       - 'ENV=${_ENV}'
       - '--file'
@@ -39,7 +59,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/backend:$BRANCH_NAME'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
@@ -47,11 +67,11 @@ steps:
       - 'run'
       - 'deploy'
       - '${_APP_NAME}-$BRANCH_NAME-frontend'
-      - '--image=gcr.io/$PROJECT_ID/frontend:$BRANCH_NAME'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/frontend:$BRANCH_NAME'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--port=8000' 
+      - '--port=8000'
       - '--timeout=300s'
       - '--set-env-vars=BACKEND_URL=http://backend-service:9000'
 
@@ -61,14 +81,13 @@ steps:
       - 'run'
       - 'deploy'
       - '${_APP_NAME}-$BRANCH_NAME-backend'
-      - '--image=gcr.io/$PROJECT_ID/backend:$BRANCH_NAME'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/my-artifact-registry/backend:$BRANCH_NAME'
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--port=9000' 
+      - '--port=9000'
       - '--timeout=300s'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
-      #- '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_PORT=5432,CLOUD_SQL_CONNECTION_NAME=${_CLOUDSQL_CONNECTION_NAME}'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -81,11 +100,10 @@ steps:
       - '--region=${_REGION}'
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--port=80' 
+      - '--port=80'
       - '--timeout=300s'
       - '--memory=1Gi'
       - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
-      
 
 options:
   logging: CLOUD_LOGGING_ONLY
