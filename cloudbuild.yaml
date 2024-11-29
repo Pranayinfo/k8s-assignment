@@ -91,6 +91,11 @@ steps:
       - '--port=80'
       - '--timeout=300s'
       - '--memory=1Gi'
+      - '--network=default' 
+      - '--subnet=default'
+      - '--vpc-egress=private-ranges-only'
+      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'  
+      - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=10.0.0.5,POSTGRES_PORT=5432'
       - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
 
 options:
