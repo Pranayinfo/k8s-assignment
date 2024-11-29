@@ -71,7 +71,7 @@ steps:
       - '--allow-unauthenticated'
       - '--port=9000'
       - '--timeout=300s'
-      - '--network=default 
+      - '--network=default' 
       - '--subnet=default'
       - '--vpc-egress=private-ranges-only'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'  
