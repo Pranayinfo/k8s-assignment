@@ -71,8 +71,8 @@ steps:
       - '--allow-unauthenticated'
       - '--port=9000'
       - '--timeout=300s'
-      - '--add-cloudsql-instances=feisty-return-438307-f5:us-central1:d3v-5'  
-      - '--vpc-connector=default' 
+      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'  
+      - '--annotations=run.googleapis.com/network-interfaces="default"'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=10.0.0.5,POSTGRES_PORT=5432'
 
   # Deploy pgAdmin for database management
