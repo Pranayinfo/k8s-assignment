@@ -71,8 +71,9 @@ steps:
       - '--allow-unauthenticated'
       - '--port=9000'
       - '--timeout=300s'
+      - '--vpc=default'  # Direct VPC access
+      - '--subnet=default'
       - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'  
-      - '--annotations=run.googleapis.com/network-interfaces="default"'
       - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=10.0.0.5,POSTGRES_PORT=5432'
 
   # Deploy pgAdmin for database management
