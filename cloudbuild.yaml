@@ -91,9 +91,9 @@ steps:
       - '--allow-unauthenticated'
       - '--port=8000'
       - '--timeout=300s'
-      - '--set-env-vars=BACKEND_URL=http://backend-service:9000'
+      - '--set-env-vars=BACKEND_URL=https://d3v-app-master-backend-224789520812.us-central1.run.app'
 
-  # Deploy backend using Cloud Run
+  # Deploy backend using Cloud Run, connecting to private Cloud SQL instance
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -106,8 +106,25 @@ steps:
       - '--allow-unauthenticated'
       - '--port=9000'
       - '--timeout=300s'
-      - '--add-cloudsql-instances=${_CLOUDSQL_CONNECTION_NAME}'
-      - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=34.70.0.83,POSTGRES_PORT=5432'
+      - '--add-cloudsql-instances=feisty-return-438307-f5:us-central1:d3v-5'  # Connection name of Cloud SQL instance
+      - '--vpc-connector=default'  # Connect to the default VPC
+      - '--set-env-vars=POSTGRES_USER=d3vuser,POSTGRES_PASSWORD=admin123,POSTGRES_DB=d3v-db,POSTGRES_HOST=10.0.0.5,POSTGRES_PORT=5432'
+
+  # Deploy pgAdmin for database management
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'pgadmin-$BRANCH_NAME'
+      - '--image=dpage/pgadmin4'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=80'
+      - '--timeout=300s'
+      - '--memory=1Gi'
+      - '--set-env-vars=PGADMIN_DEFAULT_EMAIL=admin@admin.com,PGADMIN_DEFAULT_PASSWORD=pwdpwd'
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -117,6 +134,6 @@ substitutions:
   _ENV: development
   _APP_NAME: d3v-app
   _SEVERITY: CRITICAL
-  _CLOUDSQL_CONNECTION_NAME: feisty-return-438307-f5:us-central1:d3v-db
+  _CLOUDSQL_CONNECTION_NAME: feisty-return-438307-f5:us-central1:d3v-5
 
 timeout: "1200s"
